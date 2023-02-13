@@ -1,0 +1,363 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+local Window = Library.CreateLib("RiseBlox", "Midnight")
+local bwars
+local bwarsFly
+local bwarsfb
+local bwarsnf
+local bwool = false
+local abuy
+local Bhop = false
+local tmChk = false
+local cam = game.Workspace.CurrentCamera
+local aura
+local nearestEntry
+
+local PlayerTab = Window:NewTab("Main - Player")
+
+local Section = PlayerTab:NewSection("Player Movement")
+
+function message(text)
+	game.StarterGui:SetCore("ChatMakeSystemMessage",{
+		Text = "[RiseBlox] "..text;
+	})
+end
+
+function notif(text)
+	game.StarterGui:SetCore("SendNotification",{
+		Title = "[RiseBlox]";
+		Text = text;
+	})
+end
+
+function fullnotif(text)
+	notif(text)
+	message(text)
+end
+
+function testForPlayer(maxDist)
+	local plr = game.Players.LocalPlayer
+	local char = plr.Character
+	local hrp = char:WaitForChild("HumanoidRootPart",1)
+	nearestEntry = nil
+	local dist = 1999
+	for _,v in pairs(game.Players:GetPlayers()) do
+		local s,e = pcall(function()
+			dist = (char.HumanoidRootPart.Position - game:GetService("Workspace"):WaitForChild(v.Name,10).HumanoidRootPart.Position).magnitude
+		end)
+		local s,e = pcall(function()
+			if v ~= nil and dist <= maxDist and v ~= plr and game.Workspace:WaitForChild(v.Name,0.1) and game.Workspace:WaitForChild(v.Name,1).Humanoid.Health ~= 0 then
+				nearestEntry = v
+			end
+		end)
+	end
+
+	return game.Workspace:WaitForChild(nearestEntry.Name)
+end
+
+function makeTimer()
+	-- Instances:
+
+	local timer = Instance.new("ScreenGui")
+	local Frame = Instance.new("Frame")
+	local TextLabel = Instance.new("TextLabel")
+
+	--Properties:
+
+	timer.Name = "timer"
+	timer.Parent = game.CoreGui
+	timer.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+
+	Frame.Parent = timer
+	Frame.BackgroundColor3 = Color3.fromRGB(34, 255, 0)
+	Frame.BorderSizePixel = 4
+	Frame.Position = UDim2.new(0.214285716, 0, 0.772435904, 0)
+	Frame.Size = UDim2.new(0, 664, 0, 48)
+
+	TextLabel.Parent = Frame
+	TextLabel.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	TextLabel.BackgroundTransparency = 1.000
+	TextLabel.Size = UDim2.new(0, 664, 0, 48)
+	TextLabel.Font = Enum.Font.SourceSans
+	TextLabel.Text = "Fly time left: Calculating"
+	TextLabel.TextColor3 = Color3.fromRGB(0, 0, 0)
+	TextLabel.TextScaled = true
+	TextLabel.TextSize = 14.000
+	TextLabel.TextWrapped = true
+
+	-- Scripts:
+
+	local function NALC_fake_script() -- TextLabel.Function 
+		local script = Instance.new('LocalScript', TextLabel)
+
+		local timer = 0
+
+		while wait(0.1) do
+			local s,e = pcall(function()
+				local plr = game.Players.LocalPlayer
+				local char = plr.Character
+				local hrp = char:WaitForChild("HumanoidRootPart",1)
+				local ray = Ray.new(hrp.Position,Vector3.new(0,-7,0))
+				local hit,pos = game.Workspace:FindPartOnRayWithIgnoreList(ray,{char},true,false)
+
+				if hit then
+					timer = 2.5
+					script.Parent.Text = "Fly time left: "..timer
+					script.Parent.Parent.BackgroundColor3 = Color3.new(0, 1, 0)
+				else
+					timer -= 0.1
+					script.Parent.Text = "Fly time left: "..math.round(timer)
+					if timer < 1.5 then
+						script.Parent.Parent.BackgroundColor3 = Color3.new(1, 0.666667, 0.254902)
+						if timer < 0.6 then
+							script.Parent.Parent.BackgroundColor3 = Color3.new(1, 0, 0.0156863)
+						end
+					end
+				end
+			end)
+			if e then
+				print(e)
+			end
+		end
+	end
+	coroutine.wrap(NALC_fake_script)()
+end
+
+function destroyTimer()
+	game.CoreGui:FindFirstChild("timer"):Destroy()
+end
+
+function bwarsSpeed()
+	repeat wait(0)
+		local s,e = pcall(function()
+			local plr = game.Players.LocalPlayer
+			local char = plr.Character
+			local hrp = char:WaitForChild("HumanoidRootPart",1)
+
+			if char.Humanoid.MoveDirection.X ~= 0 then
+				hrp.CFrame = CFrame.new(hrp.CFrame.X +hrp.Velocity.X /47,hrp.CFrame.Y,hrp.CFrame.Z +hrp.Velocity.Z /47)
+			end
+		end)
+	until bwars == false
+end
+
+Section:NewToggle("BWars speed", "Super speed!", function(state)
+	bwars = state
+	if state == true then
+		fullnotif("BedWars speed on (don't sprint)")
+		bwarsSpeed()
+	end
+end)
+
+function bwarsFlyFunc()
+	makeTimer()
+	repeat wait(0)
+		local s,e = pcall(function()
+			local plr = game.Players.LocalPlayer
+			local char = plr.Character
+			local hrp = char:WaitForChild("HumanoidRootPart",1)
+
+			hrp.Velocity = Vector3.new(hrp.Velocity.X,2,hrp.Velocity.Z)
+			if char.Humanoid.Jump == true then
+				hrp.Velocity = Vector3.new(hrp.Velocity.X,12,hrp.Velocity.Z)
+			end
+		end)
+	until bwarsFly == false
+	destroyTimer()
+end
+
+Section:NewToggle("BWars fly", "become a bird!", function(state)
+	bwarsFly = state
+	if state == true then
+		fullnotif("Bedwars fly on")
+		bwarsFlyFunc()
+	end
+end)
+
+function bwarsNoFall()
+	repeat wait(0.1)
+		local s,e = pcall(function()
+			local plr = game.Players.LocalPlayer
+			local char = plr.Character
+			local hrp = char:WaitForChild("HumanoidRootPart",1)
+			wait(0.002)
+			local nfallpart = Instance.new("Part",char.HumanoidRootPart)
+			nfallpart.Transparency = 1
+			nfallpart.Size = Vector3.new(300,1,300)
+			nfallpart.Anchored = true
+			nfallpart.CFrame = CFrame.new(char.HumanoidRootPart.CFrame.X -0.5,char.HumanoidRootPart.CFrame.Y -5.3,char.HumanoidRootPart.CFrame.Z)
+			wait(0.01)
+			nfallpart:Destroy()
+		end)
+	until bwarsnf == false
+end
+
+local uTab = Window:NewTab("Utility")
+
+local Section = uTab:NewSection("BWars utilities")
+
+Section:NewToggle("BWars NOFALL", "take no fall damage!", function(state)
+	bwarsnf = state
+	if state == true then
+		fullnotif("Nofall on (should be universal mostly)")
+		bwarsNoFall()
+	end
+end)
+
+function getiron()
+	
+end
+
+function abuy()
+	
+end
+
+Section:NewToggle("BWars Autobuy", "get recommended things instantly!", function(state)
+	abuy = state
+	if state == true then
+		fullnotif("Autobuy on")
+		abuy()
+	end
+end)
+
+function avoid()
+	local plr = game.Players.LocalPlayer
+	local char = plr.Character
+	local hrp = char:WaitForChild("HumanoidRootPart",1)
+	local hpart = Instance.new("Part",game.Workspace)
+	hpart.Anchored = true
+	hpart.Size = Vector3.new(2000,1,2000)
+	hpart.CFrame = CFrame.new(hrp.CFrame.X,hrp.CFrame.Y -15,hrp.CFrame.Z)
+	hpart.Color = Color3.new(0.192157, 0.756863, 1)
+	hpart.Transparency = 0.5
+	hpart.Touched:Connect(function()
+		hrp.CFrame = lpos
+	end)
+	repeat wait(0.2)
+		plr = game.Players.LocalPlayer
+		char = plr.Character
+		hrp = char:WaitForChild("HumanoidRootPart",1)
+		local ray = Ray.new(hrp.Position,Vector3.new(0,-10,0))
+		local onGround,pos = game.Workspace:FindPartOnRayWithIgnoreList(ray,{char},true,false)
+		if onGround then
+			lpos = hrp.CFrame
+		end
+		
+	until avoid == false
+end
+
+Section:NewToggle("AntiVoid", "Best antivoid!", function(state)
+	avoid = state
+	if state == true then
+		fullnotif("AntiVoid on")
+		avoid()
+	end
+end)
+
+local uTab = Window:NewTab("Combat")
+
+local Section = uTab:NewSection("Combat - BWars")
+
+function getremote(t)
+	for i,v in next, t do 
+		if v == "Client" then 
+			return t[i+1]
+		end
+	end
+end
+
+function baura()
+	repeat wait(0.25)
+		local s,e = pcall(function()
+			local plr = game.Players.LocalPlayer
+			local char = plr.Character
+			local KnitClient = debug.getupvalue(require(plr.PlayerScripts.TS.controllers.game["block-break-controller"]).BlockBreakController.onEnable, 1)
+			local bedwars = {
+				["AttackRemote"] = getremote(debug.getconstants(getmetatable(KnitClient.Controllers.SwordController)["attackEntity"])),
+			}
+			local range = 28
+			if testForPlayer(range) then
+				local hrp = char:WaitForChild("HumanoidRootPart",1)
+				
+				--[[
+				testForPlayer(range)
+				print(testForPlayer(range))
+				if testForPlayer(range) ~= nil then
+					if tmChk == true then
+						if game.Players:WaitForChild(testForPlayer(range).Name,1).TeamColor ~= game.Players.LocalPlayer.TeamColor then
+							nearestEntry = nil
+							local cam = game.Workspace.CurrentCamera
+							cam.CFrame = CFrame.new(cam.CFrame.Position, testForPlayer(range).HumanoidRootPart.Position)
+							if mouse1press() and mouse1release() then
+								wait()
+								mouse1press()
+							end
+						end
+					else
+						nearestEntry = nil
+						local cam = game.Workspace.CurrentCamera
+						cam.CFrame = CFrame.new(cam.CFrame.Position, testForPlayer(range).HumanoidRootPart.Position)
+						if mouse1press() and mouse1release() then
+							wait()
+							mouse1press()
+						end
+					end
+				end
+				if Bhop == true then
+					char.HumanoidRootPart.CFrame = testForPlayer(range).HumanoidRootPart.CFrame
+				end
+				]]
+				
+				for _,v in pairs(game.ReplicatedStorage:GetDescendants()) do
+					if v.Name == bedwars["AttackRemote"] then
+						bedwars["AttackRemote"] = v
+					end
+				end
+				local plr = game.Players.LocalPlayer
+				local mouse = plr:GetMouse()
+				
+				local swing = game.Players.LocalPlayer.Character.Humanoid:LoadAnimation(game.Players.LocalPlayer.Character.Animate.toolslash.ToolSlashAnim)
+				swing:Play()
+				
+				for _,v in pairs(game:GetService("ReplicatedStorage"):WaitForChild("Inventories"):WaitForChild(plr.Name):GetDescendants()) do
+					local sp = string.split(string.lower(v.Name),"sword")
+					
+					if sp[2] then
+						sword=v
+					end
+				end
+				
+				local args = {
+					[1] = {
+						["chargedAttack"] = {
+							["chargeRatio"] = 0
+						},
+						["entityInstance"] = testForPlayer(range),
+						["validate"] = {
+							["targetPosition"] = {
+								["value"] = testForPlayer(range).HumanoidRootPart.Position
+							},
+							["selfPosition"] = {
+								["value"] = char.HumanoidRootPart.Position
+							}
+						},
+						["weapon"] = sword
+					}
+				}
+				
+				bedwars["AttackRemote"]:FireServer(unpack(args))
+			end
+		end)
+	until aura == false
+end
+
+Section:NewToggle("BWars aura", "auto attack!", function(state)
+	aura = state
+	if state == true then
+		fullnotif("Aura On")
+		baura()
+	end
+end)
+
+Section:NewToggle("Strafe with aura", "auto jump!", function(state)
+	Bhop = state
+end)
